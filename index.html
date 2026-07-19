@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DSA Lab — Learn Data Structures Interactively</title>
+<style>
+/* ============================ TOKENS ============================ */
+:root{
+  --bg:#F6F7FB; --surface:#FFFFFF; --surface2:#EEF1F8; --panel:#F1F3FA;
+  --ink:#161C26; --muted:#5A6577; --line:#E2E7F0; --line2:#D5DCEA;
+  --primary:#5646D6; --primary-h:#4536C4; --primary-soft:#ECEAFB;
+  --ok:#0E9F84; --ok-soft:#E1F5EF; --warn:#D98514; --warn-soft:#FBEEDA;
+  --danger:#CE4040; --danger-soft:#FBE7E7;
+  --cell:#FFFFFF; --cell-line:#C7CFDF;
+  --shadow:0 1px 2px rgba(20,30,50,.04),0 8px 24px rgba(20,30,50,.06);
+  --radius:14px; --radius-s:9px;
+  --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,"Liberation Mono",monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+html[data-theme="dark"]{
+  --bg:#0E131C; --surface:#151C27; --surface2:#1B2431; --panel:#1A222F;
+  --ink:#E7ECF4; --muted:#93A0B4; --line:#26303F; --line2:#32405335;
+  --primary:#8B7BF0; --primary-h:#9d90f3; --primary-soft:#241f3d;
+  --ok:#3FD0AE; --ok-soft:#123028; --warn:#F0B152; --warn-soft:#33280f;
+  --danger:#F0736B; --danger-soft:#341c1c;
+  --cell:#1E2836; --cell-line:#3A465A;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:var(--sans); background:var(--bg); color:var(--ink);
+  line-height:1.6; -webkit-font-smoothing:antialiased; letter-spacing:.005em;
+}
+a{color:var(--primary)}
+::selection{background:var(--primary-soft)}
+.mono{font-family:var(--mono)}
+
+/* ============================ LAYOUT ============================ */
+.app{display:grid; grid-template-columns:290px 1fr; min-height:100vh}
+/* --- sidebar --- */
+.side{
+  position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+  background:var(--surface); border-right:1px solid var(--line);
+  padding:22px 16px 40px; z-index:40;
+}
+.brand{display:flex; align-items:center; gap:11px; padding:6px 8px 16px}
+.logo{
+  width:34px;height:34px;border-radius:9px;flex:none;
+  background:linear-gradient(135deg,var(--primary),#8a7cf0);
+  display:grid;place-items:center;color:#fff;font-family:var(--mono);font-weight:700;font-size:15px;
+  box-shadow:0 4px 12px rgba(86,70,214,.35);
+}
+.brand h1{font-size:15.5px;margin:0;letter-spacing:-.01em;line-height:1.15}
+.brand p{margin:1px 0 0;font-size:11px;color:var(--muted);font-family:var(--mono);letter-spacing:.04em}
+.sidebar-prog{padding:0 8px 14px}
+.sidebar-prog .bar{height:7px;background:var(--surface2);border-radius:99px;overflow:hidden}
+.sidebar-prog .bar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--primary),var(--ok));border-radius:99px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.sidebar-prog .lbl{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:7px;letter-spacing:.03em}
+
+.nav{list-style:none;margin:6px 0 0;padding:0}
+.nav .grp{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:16px 10px 6px}
+.nav li a{
+  display:flex;align-items:center;gap:11px;text-decoration:none;color:var(--ink);
+  padding:8px 10px;border-radius:9px;font-size:13.5px;position:relative;transition:background .15s;
+}
+.nav li a:hover{background:var(--surface2)}
+.nav li a.active{background:var(--primary-soft);color:var(--primary);font-weight:600}
+html[data-theme="dark"] .nav li a.active{color:var(--primary-h)}
+.nav .num{
+  font-family:var(--mono);font-size:11px;width:24px;height:24px;flex:none;border-radius:7px;
+  display:grid;place-items:center;background:var(--surface2);color:var(--muted);border:1px solid var(--line);
+}
+.nav li a.active .num{background:var(--primary);color:#fff;border-color:transparent}
+.nav .num.done{background:var(--ok);color:#fff;border-color:transparent}
+.nav .tt{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav .chk{opacity:0;color:var(--ok);font-size:14px;transition:opacity .2s}
+.nav .chk.show{opacity:1}
+
+/* --- main --- */
+.main{min-width:0;display:flex;flex-direction:column}
+.topbar{
+  position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--bg) 82%,transparent);
+  backdrop-filter:saturate(180%) blur(10px);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:14px;padding:12px 26px;
+}
+.topbar .hamb{display:none}
+.topbar .tprog{flex:1;max-width:340px}
+.topbar .tprog .bar{height:6px;background:var(--surface2);border-radius:99px;overflow:hidden}
+.topbar .tprog .bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--primary),var(--ok));transition:width .5s}
+.topbar .tprog small{font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.03em}
+.spacer{flex:1}
+.iconbtn{
+  border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;
+  width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-size:16px;transition:.15s;
+}
+.iconbtn:hover{border-color:var(--line2);background:var(--surface2)}
+.ghost{
+  border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;
+  height:38px;padding:0 14px;border-radius:10px;font-size:12.5px;font-family:var(--mono);letter-spacing:.03em;transition:.15s;
+}
+.ghost:hover{border-color:var(--danger);color:var(--danger)}
+
+.wrap{padding:34px 26px 90px;width:100%;display:flex;justify-content:center}
+.content{width:100%;max-width:780px}
+
+/* ============================ LESSON HEADER ============================ */
+.eyebrow{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.eyebrow .lz{font-family:var(--mono);font-size:12px;color:var(--primary);letter-spacing:.08em;font-weight:600}
+.eyebrow .cat{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);border:1px solid var(--line);padding:3px 8px;border-radius:99px}
+h2.title{font-size:30px;line-height:1.12;letter-spacing:-.025em;margin:0 0 10px;font-weight:800}
+.lead{font-size:16px;color:var(--muted);margin:0 0 8px}
+hr.div{border:0;border-top:1px solid var(--line);margin:26px 0}
+
+/* content typography */
+.content h3{font-size:18px;letter-spacing:-.01em;margin:30px 0 10px;font-weight:700}
+.content h4{font-size:13px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:22px 0 8px;font-weight:600}
+.content p{margin:10px 0}
+.pts{list-style:none;margin:10px 0;padding:0}
+.pts li{position:relative;padding:4px 0 4px 24px;margin:2px 0}
+.pts li::before{content:"";position:absolute;left:4px;top:12px;width:7px;height:7px;border-radius:2px;background:var(--primary);transform:rotate(45deg)}
+.pts.sub li::before{background:var(--line2);width:6px;height:6px}
+.pts b{font-weight:650}
+kbd,code.inl{font-family:var(--mono);font-size:.86em;background:var(--surface2);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+
+/* callouts */
+.callout{border:1px solid var(--line);border-left-width:3px;border-radius:10px;padding:13px 15px;margin:16px 0;font-size:14px;background:var(--surface)}
+.callout .ct{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:5px;display:inline-block}
+.callout.fix{border-left-color:var(--warn);background:var(--warn-soft)} .callout.fix .ct{color:var(--warn)}
+.callout.add{border-left-color:var(--ok);background:var(--ok-soft)} .callout.add .ct{color:var(--ok)}
+.callout.tip{border-left-color:var(--primary);background:var(--primary-soft)} .callout.tip .ct{color:var(--primary)}
+
+/* code */
+figure.code{margin:16px 0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+figure.code figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:8px 14px;border-bottom:1px solid var(--line);background:var(--panel);display:flex;align-items:center;gap:8px}
+figure.code figcaption::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--primary);box-shadow:14px 0 0 var(--warn),28px 0 0 var(--ok);margin-right:22px}
+figure.code pre{margin:0;padding:14px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.65;color:var(--ink)}
+.c-com{color:var(--muted);font-style:italic}
+
+/* tables */
+.tbl{width:100%;border-collapse:collapse;margin:16px 0;font-size:13.5px;overflow:hidden;border-radius:10px;border:1px solid var(--line)}
+.tbl th{background:var(--primary);color:#fff;text-align:left;padding:9px 12px;font-size:12.5px;font-weight:600}
+.tbl td{padding:9px 12px;border-top:1px solid var(--line);vertical-align:top}
+.tbl tr:nth-child(even) td{background:var(--panel)}
+
+/* ============================ CELL MOTIF ============================ */
+.cellrow{display:flex;gap:0;flex-wrap:wrap;align-items:flex-end}
+.cell{
+  min-width:46px;height:46px;padding:0 6px;background:var(--cell);border:1.5px solid var(--cell-line);
+  display:grid;place-items:center;font-family:var(--mono);font-weight:600;font-size:15px;
+  margin-left:-1.5px;position:relative;transition:transform .25s,background .25s,border-color .25s;
+}
+.cell:first-child{margin-left:0;border-top-left-radius:8px;border-bottom-left-radius:8px}
+.cell:last-child{border-top-right-radius:8px;border-bottom-right-radius:8px}
+.cellrow.idx .cell{border-radius:0}
+.idxlabels{display:flex;margin-top:5px}
+.idxlabels span{min-width:46px;margin-left:-1.5px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.cell.hi{background:var(--primary-soft);border-color:var(--primary);color:var(--primary);transform:translateY(-4px);z-index:2}
+.cell.hi2{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.cell.ok{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+@keyframes pop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+.cell.enter{animation:pop .28s cubic-bezier(.34,1.56,.64,1)}
+
+/* ============================ WIDGET SHELL ============================ */
+.viz{border:1px solid var(--line);border-radius:16px;background:var(--surface);padding:18px;margin:20px 0;box-shadow:var(--shadow)}
+.viz .vhead{display:flex;align-items:center;gap:9px;margin-bottom:14px}
+.viz .vhead .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 4px var(--ok-soft)}
+.viz .vhead h5{margin:0;font-size:12px;font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.viz .stage{min-height:70px;padding:14px 4px;display:flex;align-items:center;overflow-x:auto}
+.viz .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
+.btn{border:1px solid transparent;background:var(--primary);color:#fff;cursor:pointer;height:36px;padding:0 14px;border-radius:9px;font-size:13px;font-weight:600;transition:.15s;font-family:var(--sans)}
+.btn:hover{background:var(--primary-h)}
+.btn.sec{background:var(--surface2);color:var(--ink);border-color:var(--line)}
+.btn.sec:hover{background:var(--panel);border-color:var(--line2)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.field{height:36px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink);padding:0 10px;font-family:var(--mono);font-size:13px;width:78px}
+.field:focus{outline:2px solid var(--primary-soft);border-color:var(--primary)}
+.vmsg{margin-top:12px;font-size:12.5px;color:var(--muted);min-height:18px;font-family:var(--mono)}
+.vmsg.err{color:var(--danger)} .vmsg.good{color:var(--ok)}
+.stat{display:inline-flex;gap:6px;font-family:var(--mono);font-size:11.5px;color:var(--muted);border:1px solid var(--line);border-radius:7px;padding:3px 8px;margin-right:8px}
+.stat b{color:var(--ink)}
+
+/* node (linked list) */
+.node{display:flex;align-items:stretch;border:1.5px solid var(--cell-line);border-radius:8px;overflow:hidden;background:var(--cell)}
+.node .d{padding:0 14px;display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:15px;min-width:40px}
+.node .n{padding:0 10px;display:grid;place-items:center;font-family:var(--mono);font-size:11px;color:var(--muted);border-left:1.5px dashed var(--cell-line);background:var(--panel)}
+.arrow{align-self:center;color:var(--muted);font-family:var(--mono);padding:0 6px;font-size:15px}
+.nullcap{align-self:center;font-family:var(--mono);color:var(--muted);font-size:12px;padding-left:2px}
+
+/* grid (matrix) */
+.mgrid{display:inline-grid;gap:4px;border:0}
+.mgrid .mc{width:42px;height:38px;display:grid;place-items:center;border:1.5px solid var(--cell-line);border-radius:6px;background:var(--cell);font-family:var(--mono);font-size:14px;transition:.2s}
+.mgrid .mc.nz{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);font-weight:700}
+.mgrid .mc.cur{background:var(--primary-soft);border-color:var(--primary);color:var(--primary);transform:scale(1.08);z-index:2}
+.mgrid .mc.seen{background:var(--warn-soft);border-color:var(--warn)}
+.mgrid input.mc{padding:0;text-align:center;color:var(--ink);width:42px}
+.mgrid input.mc:focus{outline:2px solid var(--primary-soft);border-color:var(--primary)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-radius:7px;padding:4px 9px;background:var(--surface)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:560px){.two{grid-template-columns:1fr}}
+.subpanel{border:1px solid var(--line);border-radius:11px;padding:12px;background:var(--panel)}
+.subpanel h6{margin:0 0 8px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+
+/* ============================ QUIZ ============================ */
+.quiz{border:1px solid var(--line);border-radius:16px;background:var(--surface);padding:20px;margin:26px 0;box-shadow:var(--shadow)}
+.quiz .qh{display:flex;align-items:center;gap:9px;margin-bottom:4px}
+.quiz .qh .tg{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--primary);font-weight:700}
+.quiz h4.qt{margin:0 0 16px;font-size:12px}
+.qitem{margin-bottom:18px}
+.qitem .qq{font-weight:600;margin-bottom:9px;font-size:15px}
+.qitem .qq .qn{font-family:var(--mono);color:var(--muted);margin-right:6px;font-size:13px}
+.opt{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink);
+  padding:10px 13px;border-radius:9px;margin:6px 0;cursor:pointer;font-size:14px;transition:.14s;font-family:var(--sans)}
+.opt:hover:not(:disabled){border-color:var(--primary);background:var(--primary-soft)}
+.opt:disabled{cursor:default}
+.opt.correct{border-color:var(--ok);background:var(--ok-soft);color:var(--ok);font-weight:600}
+.opt.wrong{border-color:var(--danger);background:var(--danger-soft);color:var(--danger)}
+.qexp{font-size:13px;color:var(--muted);margin-top:6px;padding-left:2px;display:none}
+.qexp.show{display:block}
+.qexp b{color:var(--ink)}
+
+/* ============================ FOOTER NAV ============================ */
+.lessonfoot{display:flex;align-items:center;gap:12px;margin-top:34px;padding-top:22px;border-top:1px solid var(--line);flex-wrap:wrap}
+.complete-btn{border:1.5px solid var(--ok);background:transparent;color:var(--ok);height:44px;padding:0 20px;border-radius:11px;font-weight:700;cursor:pointer;font-size:14px;display:inline-flex;align-items:center;gap:9px;transition:.15s}
+.complete-btn:hover{background:var(--ok-soft)}
+.complete-btn.done{background:var(--ok);color:#fff}
+.navbtns{display:flex;gap:8px;margin-left:auto}
+.navbtn{border:1px solid var(--line);background:var(--surface);color:var(--ink);height:44px;padding:0 16px;border-radius:11px;cursor:pointer;font-size:13.5px;font-weight:600;transition:.15s;display:inline-flex;align-items:center;gap:7px}
+.navbtn:hover:not(:disabled){border-color:var(--primary);color:var(--primary)}
+.navbtn:disabled{opacity:.4;cursor:not-allowed}
+.navbtn.pri{background:var(--primary);color:#fff;border-color:transparent}
+.navbtn.pri:hover{background:var(--primary-h);color:#fff}
+
+/* toast + confetti */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;
+  background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:11px;font-size:13.5px;font-weight:600;
+  box-shadow:var(--shadow);z-index:80;transition:.35s;pointer-events:none;display:flex;gap:9px;align-items:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.confetti{position:fixed;top:-12px;width:9px;height:14px;z-index:70;pointer-events:none;border-radius:2px}
+@keyframes fall{to{transform:translateY(105vh) rotate(720deg);opacity:.9}}
+
+/* drawer scrim */
+.scrim{display:none;position:fixed;inset:0;background:rgba(10,16,26,.45);z-index:35}
+.scrim.show{display:block}
+
+/* ============================ RESPONSIVE ============================ */
+@media(max-width:900px){
+  .app{grid-template-columns:1fr}
+  .side{position:fixed;left:0;top:0;width:284px;transform:translateX(-100%);transition:transform .28s ease;box-shadow:var(--shadow)}
+  .side.open{transform:translateX(0)}
+  .topbar .hamb{display:grid}
+  .wrap{padding:26px 16px 90px}
+  h2.title{font-size:25px}
+}
+@media(max-width:520px){
+  .topbar{padding:10px 14px;gap:10px}
+  .topbar .tprog{max-width:none}
+  .viz{padding:14px}
+  .field{width:66px}
+}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside class="side" id="side">
+    <div class="brand">
+      <div class="logo">DS</div>
+      <div><h1>DSA Lab</h1><p>interactive theory</p></div>
+    </div>
+    <div class="sidebar-prog">
+      <div class="bar"><i id="sideBar"></i></div>
+      <div class="lbl"><span id="sideCount">0 / 13</span><span id="sidePct">0%</span></div>
+    </div>
+    <ul class="nav" id="nav"></ul>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+
+  <!-- ===================== MAIN ===================== -->
+  <div class="main">
+    <header class="topbar">
+      <button class="iconbtn hamb" id="hamb" aria-label="Menu">☰</button>
+      <div class="tprog">
+        <div class="bar"><i id="topBar"></i></div>
+        <small id="topLbl">0% complete</small>
+      </div>
+      <div class="spacer"></div>
+      <button class="iconbtn" id="theme" aria-label="Toggle theme" title="Toggle light / dark">◐</button>
+      <button class="ghost" id="reset" title="Clear saved progress">reset</button>
+    </header>
+    <div class="wrap"><div class="content" id="content"></div></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ================= STORAGE (safe, degrades gracefully) ================= */
+var KEY="dsa_learn_v1", storageOK=true, mem=null;
+function loadState(){try{var r=localStorage.getItem(KEY);return r?JSON.parse(r):null;}catch(e){storageOK=false;return mem;}}
+function saveState(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){storageOK=false;mem=JSON.parse(JSON.stringify(state));}}
+
+/* ================= CONTENT HELPERS ================= */
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function ul(items,sub){return '<ul class="pts'+(sub?' sub':'')+'">'+items.map(function(i){return "<li>"+i+"</li>";}).join("")+"</ul>";}
+function code(src,label){
+  var lines=src.replace(/^\n/,"").replace(/\s+$/,"").split("\n");
+  var body=lines.map(function(l){var t=l.replace(/^\s+/,"");if(t.indexOf("#")===0)return '<span class="c-com">'+esc(l)+"</span>";
+    // dim trailing comments
+    var idx=l.indexOf("  #");if(idx>-1){return esc(l.slice(0,idx))+'<span class="c-com">'+esc(l.slice(idx))+"</span>";}
+    return esc(l);}).join("\n");
+  return '<figure class="code"><figcaption>'+(label||"Python")+"</figcaption><pre>"+body+"</pre></figure>";
+}
+function callout(kind,title,html){return '<div class="callout '+kind+'"><span class="ct">'+title+"</span><div>"+html+"</div></div>";}
+function viz(name,title){return '<div class="viz" data-widget="'+name+'"><div class="vhead"><span class="dot"></span><h5>'+title+"</h5></div></div>";}
+/* static cell row */
+function cells(vals,idx){
+  var r='<div class="cellrow'+(idx?' idx':'')+'">'+vals.map(function(v){return '<div class="cell">'+v+"</div>";}).join("")+"</div>";
+  if(idx){r+='<div class="idxlabels">'+vals.map(function(_,i){return "<span>"+i+"</span>";}).join("")+"</div>";}
+  return r;
+}
+
+/* ================= LESSON DATA ================= */
+var LESSONS=[
+/* 0 */{id:"intro",cat:"Foundations",title:"What is a Data Structure?",
+ lead:"How data is stored, organised, and reached efficiently — and the big family tree.",
+ body:function(){return ul([
+   "A <b>data structure</b> is a way of storing and organising data in a computer.",
+   "It lets data be <b>accessed and updated efficiently</b>.",
+   "It defines the <b>relationship</b> between data elements and the operations on them.",
+   "The right choice improves a program's <b>speed and memory</b> use."
+ ])+
+ "<h3>The two big families</h3>"+
+ viz("intro","Classification explorer")+
+ "<h4>Linear vs Non-linear</h4>"+
+ '<table class="tbl"><tr><th>Linear</th><th>Non-linear</th></tr>'+
+ "<tr><td>Elements in a <b>sequence</b>; each joined to its previous &amp; next.</td><td>Elements <b>not</b> sequential; hierarchical / networked.</td></tr>"+
+ "<tr><td>Single level — traversed in <b>one run</b>.</td><td>Multiple levels — <b>cannot</b> be traversed in one run.</td></tr>"+
+ "<tr><td>Array, Stack, Queue, Linked List.</td><td>Tree, Graph.</td></tr></table>"+
+ "<h4>Static vs Dynamic</h4>"+ul([
+   "<b>Static</b> — fixed size, fixed at compile time (e.g. a traditional array).",
+   "<b>Dynamic</b> — size grows / shrinks at run time (e.g. stack, queue, linked list)."
+ ]);},
+ quiz:[
+  {q:"Which set is entirely made of linear data structures?",o:["Tree, Graph, Array","Array, Stack, Queue","Graph, Queue, Tree"],a:1,e:"Trees and graphs are non-linear; arrays, stacks and queues are linear."},
+  {q:"A structure whose size is fixed before the program runs is…",o:["Dynamic","Static","Non-linear"],a:1,e:"Static structures fix their size at compile time; dynamic ones change size at run time."}
+ ]},
+
+/* 1 */{id:"adt",cat:"Foundations",title:"Abstract Data Type (ADT)",
+ lead:"A model defined by what operations do — never how they are built.",
+ body:function(){return ul([
+   "An <b>ADT</b> is a type defined by a <b>set of values</b> and a <b>set of operations</b>.",
+   "It says <b>WHAT</b> operations do, not <b>HOW</b> they are implemented.",
+   'It is called <i>abstract</i> because it gives an <b>implementation-independent</b> view.',
+   "Word split: <b>Abstract</b> = hidden detail; <b>Data type</b> = data + its operations.",
+   "Examples: List, Stack, Queue."
+ ])+
+ "<h3>Encapsulation: the interface hides the internals</h3>"+
+ "<p>Your program talks only to the <b>public interface</b>. The real data structures and private helpers stay hidden, so the internals can change without breaking your code. Tap the interface below to peek behind it.</p>"+
+ viz("adt","Interface vs implementation")+
+ "<h4>ADT vs UDT</h4>"+
+ '<table class="tbl"><tr><th>Abstract Data Type</th><th>User-Defined Type</th></tr>'+
+ "<tr><td>Defines <b>what</b> operations are allowed.</td><td>Defines <b>how</b> data is stored / implemented.</td></tr>"+
+ "<tr><td>A conceptual model.</td><td>A concrete implementation from primitive types.</td></tr>"+
+ "<tr><td>List, Stack, Queue.</td><td>A class you write that implements the ADT.</td></tr></table>"+
+ callout("tip","Remember","An ADT is the <b>idea</b> (a Stack is LIFO); a UDT is the <b>actual code</b> that realises it. One ADT can have many implementations (stack on an array, or on a linked list).");},
+ quiz:[
+  {q:"An ADT primarily specifies…",o:["The exact memory layout","What operations exist and how they behave","The programming language used"],a:1,e:"An ADT fixes behaviour (the interface), not the implementation."},
+  {q:"Hiding the internal storage behind a fixed set of operations is called…",o:["Recursion","Encapsulation","Iteration"],a:1,e:"Encapsulation bundles data with operations and hides the internals."}
+ ]},
+
+/* 2 */{id:"bigo",cat:"Foundations",title:"Time & Space Complexity",added:true,
+ lead:"Big-O: how work grows as the input grows. Slide n and watch.",
+ body:function(){return ul([
+   "<b>Time complexity</b> — how running time grows as input size <i>n</i> grows.",
+   "<b>Space complexity</b> — how much extra memory an algorithm needs.",
+   "<b>Big-O</b> describes the <b>worst-case</b> growth and ignores constants.",
+   "Two nested loops over m rows and n columns give <b>O(m×n)</b>."
+ ])+
+ viz("bigo","Growth explorer")+
+ '<table class="tbl"><tr><th>Order</th><th>Name</th><th>Example</th></tr>'+
+ '<tr><td class="mono">O(1)</td><td>Constant</td><td>Access <code class="inl">arr[i]</code> by index.</td></tr>'+
+ '<tr><td class="mono">O(log n)</td><td>Logarithmic</td><td>Binary search.</td></tr>'+
+ '<tr><td class="mono">O(n)</td><td>Linear</td><td>Scan a list once.</td></tr>'+
+ '<tr><td class="mono">O(n log n)</td><td>Linearithmic</td><td>Merge sort.</td></tr>'+
+ '<tr><td class="mono">O(n²)</td><td>Quadratic</td><td>Two nested loops over the same data.</td></tr></table>';},
+ quiz:[
+  {q:"Accessing an array element by its index is…",o:["O(n)","O(1)","O(n²)"],a:1,e:"The address is computed directly, so index access is constant time O(1)."},
+  {q:"Scanning every cell of an m × n matrix once costs…",o:["O(m + n)","O(m × n)","O(log n)"],a:1,e:"Two nested loops (m rows × n columns) give O(m×n)."}
+ ]},
+
+/* 3 */{id:"array",cat:"Linear",title:"Arrays",
+ lead:"Same-type elements in contiguous memory — reached instantly by index.",
+ body:function(){return ul([
+   "An <b>array</b> holds elements of the <b>same type</b>.",
+   "They sit in <b>contiguous</b> memory locations.",
+   "Each element is reached directly by its <b>index</b> (starts at 0).",
+   "Index access is <b>O(1)</b> — the address is computed as base + i × size."
+ ])+
+ viz("array","Array &amp; index access")+
+ "<h4>By size</h4>"+ul([
+   "<b>Fixed</b> — size can't change after creation.",
+   "<b>Dynamic</b> — grows / shrinks at run time (a Python list)."
+ ])+
+ callout("fix","Note","<code class='inl'>int arr = [1,2,3]</code> is C/C++/Java. In Python it's just <code class='inl'>arr = [1,2,3]</code> — no type prefix. And <code class='inl'>[0]*5</code> is still a dynamic list in Python.")+
+ "<h4>By dimension</h4>"+ul([
+   "<b>1-D</b> — a single row.",
+   "<b>2-D</b> — rows &amp; columns (a matrix), <code class='inl'>a[row][col]</code>.",
+   "<b>3-D</b> — a stack of 2-D layers, <code class='inl'>a[layer][row][col]</code>."
+ ]);},
+ quiz:[
+  {q:"Array indexing starts at…",o:["1","0","-1"],a:1,e:"The first element is at index 0."},
+  {q:"Why is array index access O(1)?",o:["Elements are sorted","The address is computed directly from the index","It searches every element"],a:1,e:"Contiguous memory lets the address be computed instantly: base + i × size."}
+ ]},
+
+/* 4 */{id:"list",cat:"Linear",title:"List ADT",
+ lead:"An ordered collection you can insert into, delete from, and walk through.",
+ body:function(){return ul([
+   "A <b>List</b> stores an <b>ordered collection</b> of elements.",
+   "You can access, insert, or remove elements.",
+   "A basic ADT, alongside Stack and Queue."
+ ])+
+ "<h4>Types</h4>"+ul([
+   "<b>Ordered</b> — kept in a specific order.",
+   "<b>Unordered</b> — no required order.",
+   "<b>Indexed</b> — reached by index position."
+ ])+
+ viz("list","Insert, delete, traverse")+
+ code("mylist = [2, 3, 4]\nmylist.insert(0, 1)   # head  -> [1, 2, 3, 4]\nmylist.insert(2, 9)   # index -> [1, 2, 9, 3, 4]\nmylist.append(5)      # tail  -> [..., 5]\nmylist.remove(9)      # delete value 9\nfor x in mylist:      # traverse\n    print(x)")+
+ callout("fix","Note","Syntax is <code class='inl'>list.insert(index, value)</code> — index first, then value.");},
+ quiz:[
+  {q:"list.insert(0, 1) does what?",o:["Inserts value 1 at index 0 (front)","Inserts index 0 at value 1","Removes item 0"],a:0,e:"insert(index, value): value 1 is placed at index 0 — the front."},
+  {q:"Adding to the end of a Python list uses…",o:["insert()","append()","remove()"],a:1,e:"append() adds at the tail (end)."}
+ ]},
+
+/* 5 */{id:"stack",cat:"Linear",title:"Stack ADT",
+ lead:"Last In, First Out. Push and pop from one end — the top.",
+ body:function(){return ul([
+   "A <b>Stack</b> follows <b>LIFO</b> — Last In, First Out.",
+   "The last element pushed is the first popped.",
+   "All action happens at one end, the <b>top</b>.",
+   "Analogy: a stack of plates."
+ ])+
+ viz("stack","Live stack — push / pop / peek")+
+ "<h4>Operations</h4>"+ul([
+   "<b>push</b> — add to the top.","<b>pop</b> — remove from the top.",
+   "<b>peek</b> — read the top without removing.","<b>isEmpty / isFull</b> — status checks."
+ ])+
+ callout("fix","Fix","peek returns the <b>top</b> (most recently pushed) element — not the \"first\". <code class='inl'>stack[-1]</code> is correct.")+
+ callout("add","Overflow &amp; underflow","<b>Overflow</b> = push onto a full stack. <b>Underflow</b> = pop / peek an empty stack. Avoid by checking isFull() / isEmpty() first (try it in the widget — it hits both).")+
+ "<h4>Applications</h4>"+ul(["Function call stack &amp; recursion","Undo / redo","Balanced brackets, infix→postfix","Browser back button"]);},
+ quiz:[
+  {q:"You push 1, 2, 3. The first value popped is…",o:["1","3","2"],a:1,e:"LIFO: the last pushed (3) comes out first."},
+  {q:"Popping from an empty stack causes…",o:["Overflow","Underflow","A leap year"],a:1,e:"Underflow = removing from an empty stack. Overflow is pushing onto a full one."}
+ ]},
+
+/* 6 */{id:"queue",cat:"Linear",title:"Queue ADT",
+ lead:"First In, First Out. Enter at the rear, leave from the front.",
+ body:function(){return ul([
+   "A <b>Queue</b> follows <b>FIFO</b> — First In, First Out.",
+   "Insert at the <b>rear</b>; remove from the <b>front</b>.",
+   "Analogy: a line at a ticket counter."
+ ])+
+ viz("queue","Live queue — enqueue / dequeue / peek")+
+ "<h4>Operations</h4>"+ul(["<b>enqueue</b> — add at rear","<b>dequeue</b> — remove from front","<b>peek</b> — read the front","<b>isEmpty / isFull</b> — status"])+
+ callout("add","Types of queue","<b>Simple</b>, <b>Circular</b> (rear wraps around), <b>Priority</b> (highest priority leaves first), <b>Deque</b> (both ends).")+
+ "<h4>Applications</h4>"+ul(["CPU / process scheduling","Printer spooling","BFS traversal of graphs &amp; trees","IO / data buffers"]);},
+ quiz:[
+  {q:"You enqueue A, B, C. dequeue() returns…",o:["C","A","B"],a:1,e:"FIFO: the first in (A) is the first out."},
+  {q:"A queue where insertion and deletion happen at both ends is a…",o:["Priority queue","Deque","Circular queue"],a:1,e:"A deque (double-ended queue) allows both ends."}
+ ]},
+
+/* 7 */{id:"bag",cat:"Collections",title:"Bag ADT",
+ lead:"An unordered collection that keeps duplicates (a multiset).",
+ body:function(){return ul([
+   "A <b>Bag</b> (multiset) stores a collection where <b>duplicates are allowed</b>.",
+   "Elements are <b>unordered</b> but must be <b>comparable</b>.",
+ ])+
+ viz("bag","Live bag — duplicates welcome")+
+ "<h4>Methods</h4>"+ul(["<b>add(item)</b> — put an item in","<b>remove(item)</b> — take one out (error if absent)","<b>contains(item)</b> — membership check","<b>len()</b> — count of items","<b>iterator</b> — loop over items"])+
+ code("class Bag:\n    def __init__(self):        self.items = []\n    def __len__(self):         return len(self.items)\n    def __contains__(self, x): return x in self.items\n    def add(self, x):          self.items.append(x)\n    def remove(self, x):\n        if x in self.items:\n            self.items.remove(x); return x\n        raise ValueError(\"Item not found in the bag\")");},
+ quiz:[
+  {q:"A Bag allows…",o:["Only unique values","Duplicate values","Only sorted values"],a:1,e:"A bag (multiset) keeps duplicates and has no required order."}
+ ]},
+
+/* 8 */{id:"set",cat:"Collections",title:"Set ADT",added:true,
+ lead:"Unordered, but every value is unique. See it dedupe live.",
+ body:function(){return ul([
+   "A <b>Set</b> stores an <b>unordered</b> collection with <b>no duplicates</b>.",
+   "Each value appears at most once.",
+   "Supports union, intersection, and difference."
+ ])+
+ "<p>Add the same items to a bag and a set below — the set silently drops repeats.</p>"+
+ viz("set","Bag vs Set — watch the difference")+
+ '<table class="tbl"><tr><th>Feature</th><th>Bag</th><th>Set</th></tr>'+
+ "<tr><td>Duplicates</td><td>Allowed</td><td>Not allowed</td></tr>"+
+ "<tr><td>Counts</td><td>Can count occurrences</td><td>Membership only</td></tr>"+
+ "<tr><td>Python</td><td>custom class / Counter</td><td>built-in <code class='inl'>set</code></td></tr></table>";},
+ quiz:[
+  {q:"Adding 10, 20, 10 to a Set gives…",o:["{10, 20, 10}","{10, 20}","{20}"],a:1,e:"Sets drop duplicates, so you get {10, 20}."},
+  {q:"Union and intersection are operations of a…",o:["Stack","Set","Queue"],a:1,e:"Sets support union, intersection, and difference."}
+ ]},
+
+/* 9 */{id:"linkedlist",cat:"Linear",title:"Linked List",added:true,
+ lead:"Nodes scattered in memory, chained by pointers. Build one node by node.",
+ body:function(){return ul([
+   "A <b>Linked List</b> is a chain of <b>nodes</b> at <b>non-contiguous</b> memory locations.",
+   "Each node holds <b>data</b> + a <b>pointer</b> to the next node.",
+   "The first node is the <b>head</b>; the last points to <b>NULL</b>."
+ ])+
+ viz("linkedlist","Live linked list — append / prepend / delete")+
+ "<h4>Array vs Linked List</h4>"+
+ '<table class="tbl"><tr><th>Array</th><th>Linked List</th></tr>'+
+ "<tr><td>Contiguous memory</td><td>Nodes anywhere, joined by pointers</td></tr>"+
+ "<tr><td>Index access O(1)</td><td>Traverse from head O(n)</td></tr>"+
+ "<tr><td>Insert in middle costly (shifting)</td><td>Insert cheap once position known</td></tr></table>"+
+ "<h4>Types</h4>"+ul(["<b>Singly</b> — points to next only","<b>Doubly</b> — points to next &amp; previous","<b>Circular</b> — last node points back to head"]);},
+ quiz:[
+  {q:"Each node in a singly linked list stores…",o:["Only data","Data and a pointer to the next node","Data and its index"],a:1,e:"A node holds the data plus a link (pointer) to the next node."},
+  {q:"Reaching the 5th node of a linked list is…",o:["O(1)","O(n) — you traverse from the head","Impossible"],a:1,e:"There's no index jump; you follow pointers from the head, so O(n)."}
+ ]},
+
+/* 10 */{id:"date",cat:"Applied ADT",title:"Date ADT",
+ lead:"A conceptual model of a calendar date. Compare, shift, and leap-check live.",
+ body:function(){return ul([
+   "A <b>conceptual model</b> defining the properties &amp; operations for a date.",
+   "Captures a calendar date: <b>year, month, day</b>.",
+   "A day in the <b>proleptic Gregorian calendar</b>."
+ ])+
+ viz("date","Date toolkit")+
+ "<h4>Operations</h4>"+ul(["<b>setDate / getDate</b>","<b>checkLeapYear</b>","<b>addDays / subtractDays</b>","<b>compareDate</b>","<b>formatDate</b>"])+
+ callout("fix","Note","\"24 Nov 4713 BC\" is the <b>Julian Day Number</b> epoch — a day-counting reference, not the minimum of Python's <code class='inl'>datetime.date</code> (which is 0001-01-01).")+
+ code("from datetime import date, timedelta\nimport calendar\nd = date(2026, 8, 15)\nprint(d + timedelta(days=10))     # add days\nprint(calendar.isleap(2024))      # leap check\nprint(d.strftime(\"%d-%m-%Y\"))     # format");},
+ quiz:[
+  {q:"Which year is a leap year?",o:["2023","2024","2100"],a:1,e:"2024 is divisible by 4 (and not a century exception). 2100 is divisible by 100 but not 400, so it is NOT a leap year."},
+  {q:"compareDate is used to…",o:["Add days","Find chronological order of two dates","Format a date"],a:1,e:"compareDate tells which date comes first."}
+ ]},
+
+/* 11 */{id:"matrix",cat:"Matrix",title:"Matrix ADT — Sparse & Spiral",added:true,
+ lead:"A 2-D array. Convert a sparse matrix live, then animate a spiral traversal.",
+ body:function(){return ul([
+   "The <b>Matrix ADT</b> is a <b>2-D array</b> — elements in <b>rows &amp; columns</b>.",
+   "\"Abstract\" because the storage detail is hidden."
+ ])+
+ "<h3>Sparse matrix</h3>"+ul([
+   "A matrix where <b>most elements are 0</b>.",
+   "Store only the non-zero values to save <b>memory</b> and <b>time</b>."
+ ])+
+ "<p>Two ways to store it. Edit the grid, then convert — the triplet table and the linked-list nodes update live.</p>"+
+ viz("sparse","Sparse matrix converter")+
+ "<h4>(1) Array (triplet) representation</h4>"+ul(["Three rows: <b>Row</b> index, <b>Column</b> index, <b>Value</b> of each non-zero element."],true)+
+ "<h4>(2) Linked-list representation</h4>"+ul(["Each node has four fields: <b>Row, Column, Value, Next</b> (address of the next node)."],true)+
+ "<h3>Spiral matrix</h3>"+ul([
+   "Elements traversed in a <b>spiral</b>: from the top-left, clockwise, inward.",
+   "Time complexity <b>O(m×n)</b> — every element visited once."
+ ])+
+ viz("spiral","Spiral traversal — press play")+
+ '<table class="tbl"><tr><th>Sparse matrix</th><th>Spiral matrix</th></tr>'+
+ "<tr><td>Most elements are 0; saves memory.</td><td>A traversal order (pattern) problem.</td></tr>"+
+ "<tr><td>Focuses on zero vs non-zero.</td><td>Focuses on the order of elements.</td></tr></table>";},
+ quiz:[
+  {q:"In the triplet representation, each non-zero element stores…",o:["Only its value","Row, Column, and Value","Row and Column only"],a:1,e:"The triplet keeps the row index, column index, and the value."},
+  {q:"Spiral traversal of a matrix costs…",o:["O(1)","O(m × n)","O(log n)"],a:1,e:"Every element is visited exactly once, so O(m×n)."}
+ ]},
+
+/* 12 */{id:"review",cat:"Finish",title:"Practice & Review",
+ lead:"A mixed quiz across everything. Ace it to complete the course.",
+ body:function(){return "<p>You've walked through all the core topics. This final check mixes questions from across the guide. Answer them all to finish the course — your progress stays saved on this device.</p>"+
+ callout("tip","Study tip","Re-open any lesson from the sidebar to revisit a visualizer before an exam. The interactive widgets are the fastest way to re-cement LIFO, FIFO, pointers, and traversal orders.");},
+ quiz:[
+  {q:"Which follows LIFO?",o:["Queue","Stack","Bag"],a:1,e:"Stacks are Last In, First Out."},
+  {q:"Which follows FIFO?",o:["Stack","Queue","Set"],a:1,e:"Queues are First In, First Out."},
+  {q:"Nodes joined by pointers, not contiguous in memory:",o:["Array","Linked list","Matrix"],a:1,e:"A linked list chains nodes with pointers."},
+  {q:"Duplicates allowed here but not in a Set:",o:["Stack","Bag","Queue"],a:1,e:"A Bag (multiset) keeps duplicates; a Set does not."},
+  {q:"Storing only non-zero elements describes a…",o:["Spiral matrix","Sparse matrix","Dynamic array"],a:1,e:"A sparse matrix is mostly zeros, so only non-zeros are stored."}
+ ]}
+];
+
+/* ================= STATE ================= */
+var TOTAL=LESSONS.length;
+var state=loadState()||{completed:{},current:LESSONS[0].id,theme:null,quiz:{}};
+if(!state.completed)state.completed={}; if(!state.quiz)state.quiz={};
+if(!LESSONS.some(function(l){return l.id===state.current;}))state.current=LESSONS[0].id;
+
+/* ================= THEME ================= */
+function applyTheme(){
+  var t=state.theme|| (window.matchMedia&&window.matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light");
+  document.documentElement.setAttribute("data-theme",t);
+}
+document.getElementById("theme").onclick=function(){
+  var cur=document.documentElement.getAttribute("data-theme");
+  state.theme=cur==="dark"?"light":"dark";applyTheme();saveState();
+};
+
+/* ================= TOAST ================= */
+var toastEl=document.getElementById("toast"),toastT;
+function toast(msg){toastEl.innerHTML=msg;toastEl.classList.add("show");clearTimeout(toastT);toastT=setTimeout(function(){toastEl.classList.remove("show");},2200);}
+
+/* ================= PROGRESS UI ================= */
+function doneCount(){return LESSONS.filter(function(l){return state.completed[l.id];}).length;}
+function refreshProgress(){
+  var d=doneCount(),pct=Math.round(d/TOTAL*100);
+  document.getElementById("sideBar").style.width=pct+"%";
+  document.getElementById("topBar").style.width=pct+"%";
+  document.getElementById("sideCount").textContent=d+" / "+TOTAL;
+  document.getElementById("sidePct").textContent=pct+"%";
+  document.getElementById("topLbl").textContent=pct+"% complete";
+}
+
+/* ================= SIDEBAR ================= */
+function buildNav(){
+  var nav=document.getElementById("nav"),html="",lastCat=null;
+  LESSONS.forEach(function(l,i){
+    if(l.cat!==lastCat){html+='<li class="grp">'+l.cat+"</li>";lastCat=l.cat;}
+    var done=!!state.completed[l.id],active=l.id===state.current;
+    html+='<li><a href="#'+l.id+'" data-id="'+l.id+'" class="'+(active?"active":"")+'">'+
+      '<span class="num'+(done?" done":"")+'">'+(done?"✓":(i+1))+"</span>"+
+      '<span class="tt">'+l.title+"</span>"+
+      '<span class="chk'+(done?" show":"")+'">●</span></a></li>';
+  });
+  nav.innerHTML=html;
+  Array.prototype.forEach.call(nav.querySelectorAll("a"),function(a){
+    a.onclick=function(e){e.preventDefault();go(a.getAttribute("data-id"));closeDrawer();};
+  });
+}
+
+/* ================= RENDER LESSON ================= */
+function go(id){if(!LESSONS.some(function(l){return l.id===id;}))return;state.current=id;saveState();renderLesson();buildNav();window.scrollTo(0,0);
+  var c=document.getElementById("content");c.scrollIntoView?window.scrollTo(0,0):0;}
+function idx(){return LESSONS.findIndex(function(l){return l.id===state.current;});}
+
+function renderLesson(){
+  var i=idx(),l=LESSONS[i],c=document.getElementById("content");
+  var head='<div class="eyebrow"><span class="lz">Lesson '+String(i+1).padStart(2,"0")+'</span>'+
+    '<span class="cat">'+l.cat+"</span>"+(l.added?'<span class="cat" style="color:var(--ok);border-color:var(--ok)">added</span>':"")+"</div>"+
+    '<h2 class="title">'+l.title+"</h2>"+
+    '<p class="lead">'+l.lead+"</p><hr class=\"div\">";
+  var quizHtml=l.quiz?renderQuiz(l):"";
+  c.innerHTML=head+l.body()+quizHtml+renderFoot(i);
+  // mount widgets
+  Array.prototype.forEach.call(c.querySelectorAll("[data-widget]"),function(el){
+    var w=el.getAttribute("data-widget"); if(WIDGETS[w])WIDGETS[w](el);
+  });
+  wireQuiz(l);
+  wireFoot(i);
+  refreshProgress();
+}
+
+function renderFoot(i){
+  var l=LESSONS[i],done=!!state.completed[l.id];
+  return '<div class="lessonfoot">'+
+    '<button class="complete-btn'+(done?" done":"")+'" id="cbtn">'+(done?"✓ Completed":"Mark complete")+"</button>"+
+    '<div class="navbtns">'+
+    '<button class="navbtn" id="prev"'+(i===0?" disabled":"")+'>← Prev</button>'+
+    '<button class="navbtn pri" id="next"'+(i===TOTAL-1?" disabled":"")+'>Next →</button>'+
+    "</div></div>";
+}
+function wireFoot(i){
+  var l=LESSONS[i];
+  document.getElementById("cbtn").onclick=function(){toggleComplete(l.id);};
+  var p=document.getElementById("prev"),n=document.getElementById("next");
+  if(p)p.onclick=function(){if(i>0)go(LESSONS[i-1].id);};
+  if(n)n.onclick=function(){if(i<TOTAL-1)go(LESSONS[i+1].id);};
+}
+function toggleComplete(id,silent){
+  var was=!!state.completed[id];
+  if(was)delete state.completed[id]; else state.completed[id]=true;
+  saveState();buildNav();refreshProgress();
+  var b=document.getElementById("cbtn");
+  if(b){b.classList.toggle("done",!was);b.innerHTML=was?"Mark complete":"✓ Completed";}
+  if(!was&&!silent){
+    if(doneCount()===TOTAL){celebrate();toast("🎉 Course complete — every topic done!");}
+    else toast("Lesson complete ✓");
+  }
+}
+
+/* ================= QUIZ ================= */
+function renderQuiz(l){
+  var items=l.quiz.map(function(q,qi){
+    return '<div class="qitem" data-qi="'+qi+'"><div class="qq"><span class="qn">Q'+(qi+1)+'.</span>'+q.q+"</div>"+
+      q.o.map(function(op,oi){return '<button class="opt" data-oi="'+oi+'">'+op+"</button>";}).join("")+
+      '<div class="qexp"></div></div>';
+  }).join("");
+  return '<div class="quiz"><div class="qh"><span class="tg">✎ Quick check</span></div>'+
+    '<h4 class="qt">answer to test yourself — all correct auto-completes the lesson</h4>'+items+"</div>";
+}
+function wireQuiz(l){
+  if(!l.quiz)return;
+  var quizEl=document.querySelector(".quiz");if(!quizEl)return;
+  var correct=0,answered=0,total=l.quiz.length;
+  Array.prototype.forEach.call(quizEl.querySelectorAll(".qitem"),function(item){
+    var qi=+item.getAttribute("data-qi"),q=l.quiz[qi],locked=false;
+    var exp=item.querySelector(".qexp");
+    Array.prototype.forEach.call(item.querySelectorAll(".opt"),function(btn){
+      btn.onclick=function(){
+        if(locked)return;locked=true;answered++;
+        var oi=+btn.getAttribute("data-oi"),ok=oi===q.a;
+        Array.prototype.forEach.call(item.querySelectorAll(".opt"),function(b){
+          b.disabled=true;
+          if(+b.getAttribute("data-oi")===q.a)b.classList.add("correct");
+        });
+        if(!ok)btn.classList.add("wrong");
+        else correct++;
+        exp.innerHTML="<b>"+(ok?"Correct.":"Not quite.")+"</b> "+q.e;
+        exp.classList.add("show");
+        if(answered===total&&correct===total&&!state.completed[l.id]){
+          toggleComplete(l.id);
+        }
+      };
+    });
+  });
+}
+
+/* ================= CELEBRATION ================= */
+function celebrate(){
+  if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches)return;
+  var colors=["#5646D6","#0E9F84","#D98514","#8B7BF0","#CE4040"];
+  for(var i=0;i<34;i++){(function(){
+    var d=document.createElement("div");d.className="confetti";
+    d.style.left=Math.random()*100+"vw";
+    d.style.background=colors[i%colors.length];
+    d.style.animation="fall "+(1.6+Math.random()*1.4)+"s linear "+(Math.random()*.4)+"s forwards";
+    d.style.opacity="0.95";
+    document.body.appendChild(d);
+    setTimeout(function(){d.remove();},3600);
+  })();}
+}
+
+/* ================= WIDGETS ================= */
+var WIDGETS={};
+function stage(el){var s=document.createElement("div");s.className="stage";el.appendChild(s);return s;}
+function controls(el){var c=document.createElement("div");c.className="controls";el.appendChild(c);return c;}
+function msg(el){var m=document.createElement("div");m.className="vmsg";el.appendChild(m);return m;}
+function mkbtn(txt,cls){var b=document.createElement("button");b.className="btn"+(cls?" "+cls:"");b.textContent=txt;return b;}
+function mkfield(ph){var f=document.createElement("input");f.className="field";f.placeholder=ph||"";return f;}
+
+/* -- intro: classification explorer -- */
+WIDGETS.intro=function(el){
+  var s=stage(el);s.style.flexDirection="column";s.style.alignItems="stretch";
+  var c=controls(el),m=msg(el);
+  var data={Linear:{ex:["Array","Stack","Queue","Linked List"],note:"Sequential — every element has a clear previous and next. Traversed in a single run."},
+            "Non-linear":{ex:["Tree","Graph"],note:"Hierarchical or networked — an element can link to many others. Cannot be traversed in one run."}};
+  ["Linear","Non-linear"].forEach(function(k){var b=mkbtn(k,"sec");b.onclick=function(){show(k,b);};c.appendChild(b);});
+  function show(k,b){
+    Array.prototype.forEach.call(c.children,function(x){x.classList.add("sec");});
+    b.classList.remove("sec");
+    s.innerHTML='<div class="chips">'+data[k].ex.map(function(e){return '<span class="chip">'+e+"</span>";}).join("")+"</div>";
+    m.textContent=data[k].note;
+  }
+  show("Linear",c.children[0]);
+};
+
+/* -- adt: peek behind interface -- */
+WIDGETS.adt=function(el){
+  var s=stage(el);s.style.flexDirection="column";s.style.alignItems="stretch";s.style.gap="10px";
+  var revealed=false;
+  function draw(){
+    s.innerHTML=
+      '<div class="chips" style="gap:8px">'+["add(x)","remove()","size()"].map(function(o){return '<span class="chip" style="background:var(--primary-soft);border-color:var(--primary);color:var(--primary)">'+o+"</span>";}).join("")+
+      '<span class="chip mono" style="border-style:dashed">public interface</span></div>'+
+      '<div class="subpanel" style="'+(revealed?"":"opacity:.35")+'"><h6>hidden implementation'+(revealed?"":" — tap to reveal")+'</h6>'+
+        (revealed?
+          '<div style="display:flex;gap:8px;flex-wrap:wrap"><span class="chip">private _grow()</span><span class="chip">private _shift()</span></div>'+
+          '<div style="margin-top:8px">'+cells(["a0","a1","a2","…"])+'</div>'+
+          '<p style="font-size:12.5px;color:var(--muted);margin:8px 0 0">Could be an array or a linked list — your program never needs to know. That is encapsulation.</p>'
+          :'<div style="height:44px"></div>')+
+      "</div>";
+    s.querySelector(".subpanel").onclick=function(){revealed=!revealed;draw();};
+  }
+  draw();
+};
+
+/* -- bigo: growth explorer -- */
+WIDGETS.bigo=function(el){
+  var s=stage(el);s.style.flexDirection="column";s.style.alignItems="stretch";
+  var c=controls(el),m=msg(el);
+  var slider=document.createElement("input");slider.type="range";slider.min=1;slider.max=64;slider.value=8;
+  slider.style.flex="1";slider.style.accentColor="var(--primary)";
+  var wrap=document.createElement("div");wrap.style.display="flex";wrap.style.alignItems="center";wrap.style.gap="10px";wrap.style.width="100%";
+  var nlab=document.createElement("span");nlab.className="stat";
+  wrap.appendChild(nlab);wrap.appendChild(slider);c.appendChild(wrap);
+  var fns=[["O(1)",function(n){return 1;}],["O(log n)",function(n){return Math.max(1,Math.round(Math.log2(n)));}],
+           ["O(n)",function(n){return n;}],["O(n log n)",function(n){return Math.round(n*Math.max(1,Math.log2(n)));}],
+           ["O(n²)",function(n){return n*n;}]];
+  var cols=["var(--ok)","#3aa5d9","var(--primary)","var(--warn)","var(--danger)"];
+  function draw(){
+    var n=+slider.value;nlab.innerHTML="n = <b>"+n+"</b>";
+    var vals=fns.map(function(f){return f[1](n);}),max=Math.max.apply(null,vals);
+    s.innerHTML='<div style="display:flex;flex-direction:column;gap:7px;width:100%">'+fns.map(function(f,i){
+      var v=vals[i],w=Math.max(2,Math.round(v/max*100));
+      return '<div style="display:flex;align-items:center;gap:10px"><span class="mono" style="width:78px;font-size:12px;color:'+cols[i]+'">'+f[0]+'</span>'+
+        '<div style="flex:1;background:var(--surface2);border-radius:6px;overflow:hidden;height:20px"><div style="height:100%;width:'+w+'%;background:'+cols[i]+';border-radius:6px;transition:width .25s"></div></div>'+
+        '<span class="mono" style="width:66px;text-align:right;font-size:12px">'+v.toLocaleString()+'</span></div>';
+    }).join("")+"</div>";
+    m.textContent="Same input n = "+n+", wildly different amounts of work. That gap is why complexity matters.";
+  }
+  slider.oninput=draw;draw();
+};
+
+/* -- array -- */
+WIDGETS.array=function(el){
+  var arr=[11,9,17,89,1,90,5],base=200;
+  var s=stage(el);s.style.flexDirection="column";s.style.alignItems="flex-start";
+  var c=controls(el),m=msg(el);
+  var f=mkfield("index");f.type="number";f.min=0;
+  var acc=mkbtn("Access"),app=mkbtn("Append","sec"),rem=mkbtn("Remove last","sec");
+  c.appendChild(f);c.appendChild(acc);c.appendChild(app);c.appendChild(rem);
+  function draw(hi){
+    var addrs='<div class="idxlabels">'+arr.map(function(_,i){return "<span>"+(base+i*4)+"</span>";}).join("")+"</div>";
+    var row='<div class="cellrow idx">'+arr.map(function(v,i){return '<div class="cell'+(i===hi?" hi":"")+'">'+v+"</div>";}).join("")+"</div>";
+    var idxs='<div class="idxlabels">'+arr.map(function(_,i){return "<span>"+i+"</span>";}).join("")+"</div>";
+    s.innerHTML='<div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:2px">memory address</div>'+addrs+row+idxs;
+  }
+  acc.onclick=function(){var i=parseInt(f.value,10);
+    if(isNaN(i)||i<0||i>=arr.length){m.className="vmsg err";m.textContent="Index "+f.value+" is out of bounds (0.."+(arr.length-1)+").";draw();return;}
+    draw(i);m.className="vmsg good";m.textContent="arr["+i+"] = "+arr[i]+"  →  found in O(1) (address "+(base+i*4)+").";};
+  app.onclick=function(){if(arr.length>=11){m.className="vmsg err";m.textContent="Grid is full for this demo.";return;}
+    arr.push(Math.floor(Math.random()*90)+1);draw();m.className="vmsg";m.textContent="Appended — a dynamic array grew by one.";};
+  rem.onclick=function(){if(!arr.length)return;arr.pop();draw();m.className="vmsg";m.textContent="Removed the last element.";};
+  draw();
+};
+
+/* -- list -- */
+WIDGETS.list=function(el){
+  var arr=[10,20,30];
+  var s=stage(el);s.style.flexWrap="wrap";var c=controls(el),m=msg(el);
+  var val=mkfield("value");val.type="number";var pos=mkfield("index");pos.type="number";
+  var bh=mkbtn("Insert head","sec"),bt=mkbtn("Insert tail","sec"),bi=mkbtn("Insert @ index","sec"),
+      bd=mkbtn("Delete value","sec"),bv=mkbtn("Traverse");
+  [val,bh,bt,pos,bi,bd,bv].forEach(function(x){c.appendChild(x);});
+  function draw(hi,enter){
+    s.innerHTML='<div class="cellrow">'+arr.map(function(v,i){
+      return '<div class="cell'+(i===hi?" hi":"")+(enter===i?" enter":"")+'">'+v+"</div>";}).join("")+
+      (arr.length?'<div class="idxlabels" style="position:absolute"></div>':'<span class="nullcap">empty</span>')+"</div>"+
+      (arr.length?'<div class="idxlabels">'+arr.map(function(_,i){return "<span>"+i+"</span>";}).join("")+"</div>":"");
+  }
+  function num(f){var n=parseInt(f.value,10);return isNaN(n)?Math.floor(Math.random()*90)+1:n;}
+  bh.onclick=function(){arr.unshift(num(val));draw(null,0);m.textContent="Inserted at head (index 0).";};
+  bt.onclick=function(){arr.push(num(val));draw(null,arr.length-1);m.textContent="Appended at tail.";};
+  bi.onclick=function(){var p=parseInt(pos.value,10);if(isNaN(p)||p<0||p>arr.length){m.className="vmsg err";m.textContent="Index must be 0.."+arr.length+".";return;}
+    arr.splice(p,0,num(val));draw(null,p);m.className="vmsg";m.textContent="Inserted at index "+p+" — later items shift right.";};
+  bd.onclick=function(){var v=parseInt(val.value,10);var i=arr.indexOf(v);if(i<0){m.className="vmsg err";m.textContent="Value "+val.value+" not in the list.";return;}
+    arr.splice(i,1);draw();m.className="vmsg";m.textContent="Deleted "+v+" — items after it shift left.";};
+  bv.onclick=function(){var i=0;m.className="vmsg";(function step(){if(i>=arr.length){draw();m.textContent="Traversal done.";return;}
+    draw(i);m.textContent="Visiting index "+i+" → "+arr[i];i++;setTimeout(step,360);})();};
+  draw();
+};
+
+/* -- stack -- */
+WIDGETS.stack=function(el){
+  var st=[],CAP=6,counter=1;
+  var s=stage(el);s.style.flexDirection="column";s.style.alignItems="center";s.style.minHeight="180px";s.style.justifyContent="flex-start";
+  var c=controls(el),m=msg(el);
+  var push=mkbtn("Push"),pop=mkbtn("Pop","sec"),peek=mkbtn("Peek","sec"),clr=mkbtn("Clear","sec");
+  [push,pop,peek,clr].forEach(function(x){c.appendChild(x);});
+  function stats(){return '<div style="margin-bottom:8px">'+
+    '<span class="stat">size <b>'+st.length+"/"+CAP+"</b></span>"+
+    '<span class="stat">isEmpty <b>'+(st.length===0)+"</b></span>"+
+    '<span class="stat">isFull <b>'+(st.length===CAP)+"</b></span></div>";}
+  function draw(hi){
+    var col="";
+    for(var i=st.length-1;i>=0;i--){var top=i===st.length-1;
+      col+='<div class="cell'+(hi&&top?" hi2":"")+'" style="width:130px;height:38px;border-radius:8px;margin:3px 0;position:relative">'+st[i]+
+        (top?'<span style="position:absolute;right:-44px;font-size:10px;color:var(--muted)">top</span>':"")+"</div>";}
+    s.innerHTML=stats()+(st.length?'<div style="display:flex;flex-direction:column;align-items:center">'+col+"</div>":'<span class="nullcap">empty stack — push to see LIFO</span>');
+  }
+  push.onclick=function(){if(st.length>=CAP){m.className="vmsg err";m.textContent="Stack Overflow — can't push onto a full stack (checked isFull first).";draw();return;}
+    st.push("v"+counter++);draw();m.className="vmsg good";m.textContent="Pushed "+st[st.length-1]+" onto the top.";
+    var top=s.querySelector(".cell");if(top)top.classList.add("enter");};
+  pop.onclick=function(){if(!st.length){m.className="vmsg err";m.textContent="Stack Underflow — can't pop an empty stack (checked isEmpty first).";return;}
+    var v=st.pop();draw();m.className="vmsg";m.textContent="Popped "+v+" (LIFO — the most recently pushed).";};
+  peek.onclick=function(){if(!st.length){m.className="vmsg err";m.textContent="Nothing to peek — the stack is empty.";return;}
+    draw(true);m.className="vmsg";m.textContent="peek → "+st[st.length-1]+" (top, not removed).";};
+  clr.onclick=function(){st=[];counter=1;draw();m.className="vmsg";m.textContent="";};
+  draw();
+};
+
+/* -- queue -- */
+WIDGETS.queue=function(el){
+  var q=[],CAP=6,counter=1;
+  var s=stage(el);var c=controls(el),m=msg(el);
+  var enq=mkbtn("Enqueue"),deq=mkbtn("Dequeue","sec"),peek=mkbtn("Peek","sec"),clr=mkbtn("Clear","sec");
+  [enq,deq,peek,clr].forEach(function(x){c.appendChild(x);});
+  function draw(hi){
+    if(!q.length){s.innerHTML='<span class="nullcap">empty queue — enqueue to see FIFO</span>';return;}
+    s.innerHTML='<div style="display:flex;flex-direction:column;gap:6px">'+
+      '<div class="cellrow">'+q.map(function(v,i){return '<div class="cell'+(hi&&i===0?" hi":"")+'" style="width:54px">'+v+"</div>";}).join("")+"</div>"+
+      '<div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--muted)"><span>↑ front (dequeue)</span><span>rear (enqueue) ↑</span></div>'+
+      '<div><span class="stat">size <b>'+q.length+"/"+CAP+"</b></span><span class=\"stat\">isEmpty <b>"+(q.length===0)+"</b></span></div></div>";
+  }
+  enq.onclick=function(){if(q.length>=CAP){m.className="vmsg err";m.textContent="Queue is full.";return;}
+    q.push("v"+counter++);draw();m.className="vmsg good";m.textContent="Enqueued "+q[q.length-1]+" at the rear.";
+    var cs=s.querySelectorAll(".cell");if(cs.length)cs[cs.length-1].classList.add("enter");};
+  deq.onclick=function(){if(!q.length){m.className="vmsg err";m.textContent="Queue Underflow — nothing to dequeue.";return;}
+    var v=q.shift();draw();m.className="vmsg";m.textContent="Dequeued "+v+" (FIFO — the first one in).";};
+  peek.onclick=function(){if(!q.length){m.className="vmsg err";m.textContent="Queue is empty.";return;}
+    draw(true);m.className="vmsg";m.textContent="peek → "+q[0]+" (front, not removed).";};
+  clr.onclick=function(){q=[];counter=1;draw();m.className="vmsg";m.textContent="";};
+  draw();
+};
+
+/* -- bag -- */
+WIDGETS.bag=function(el){
+  var bag=[];
+  var s=stage(el);var c=controls(el),m=msg(el);
+  var f=mkfield("item");var add=mkbtn("Add"),rem=mkbtn("Remove","sec"),has=mkbtn("Contains?","sec"),clr=mkbtn("Clear","sec");
+  [f,add,rem,has,clr].forEach(function(x){c.appendChild(x);});
+  function draw(){
+    var counts={};bag.forEach(function(x){counts[x]=(counts[x]||0)+1;});
+    s.innerHTML=(bag.length?'<div class="chips">'+bag.map(function(x){return '<span class="chip">'+esc(x)+"</span>";}).join("")+"</div>"
+      :'<span class="nullcap">empty bag — add items (duplicates are fine)</span>')+
+      '<div style="margin-top:10px"><span class="stat">len <b>'+bag.length+"</b></span>"+
+      Object.keys(counts).map(function(k){return '<span class="stat">'+esc(k)+" × <b>"+counts[k]+"</b></span>";}).join("")+"</div>";
+  }
+  function val(){return (f.value||"").trim()||"item"+(bag.length+1);}
+  add.onclick=function(){bag.push(val());draw();m.className="vmsg good";m.textContent="Added — duplicates are allowed in a bag.";};
+  rem.onclick=function(){var v=val(),i=bag.indexOf(v);if(i<0){m.className="vmsg err";m.textContent="\""+v+"\" is not in the bag.";return;}bag.splice(i,1);draw();m.className="vmsg";m.textContent="Removed one \""+v+"\".";};
+  has.onclick=function(){var v=val();m.className="vmsg";m.textContent="contains(\""+v+"\") → "+(bag.indexOf(v)>=0);};
+  clr.onclick=function(){bag=[];draw();m.className="vmsg";m.textContent="";};
+  draw();
+};
+
+/* -- set vs bag -- */
+WIDGETS.set=function(el){
+  var bag=[],set=[];
+  var wrap=document.createElement("div");wrap.className="two";el.appendChild(wrap);
+  var c=controls(el),m=msg(el);
+  var f=mkfield("value");var add=mkbtn("Add to both"),clr=mkbtn("Clear","sec");
+  [f,add,clr].forEach(function(x){c.appendChild(x);});
+  function panel(title,items,dedup){
+    return '<div class="subpanel"><h6>'+title+" — len "+items.length+'</h6><div class="chips">'+
+      (items.length?items.map(function(x){return '<span class="chip">'+esc(x)+"</span>";}).join(""):'<span class="nullcap">empty</span>')+"</div></div>";
+  }
+  function draw(){wrap.innerHTML=panel("Bag (keeps duplicates)",bag)+panel("Set (unique only)",set);}
+  add.onclick=function(){var v=(f.value||"").trim()||"x";bag.push(v);
+    if(set.indexOf(v)<0){set.push(v);m.className="vmsg good";m.textContent="\""+v+"\" added to both.";}
+    else{m.className="vmsg";m.textContent="Bag took another \""+v+"\"; the Set ignored the duplicate.";}
+    draw();};
+  clr.onclick=function(){bag=[];set=[];draw();m.className="vmsg";m.textContent="";};
+  draw();
+};
+
+/* -- linked list -- */
+WIDGETS.linkedlist=function(el){
+  var list=[10,20,30],counter=40;
+  var s=stage(el);var c=controls(el),m=msg(el);
+  var app=mkbtn("Append"),pre=mkbtn("Prepend","sec"),delh=mkbtn("Delete head","sec"),clr=mkbtn("Clear","sec");
+  [app,pre,delh,clr].forEach(function(x){c.appendChild(x);});
+  function draw(enter){
+    if(!list.length){s.innerHTML='<span class="nullcap">head → NULL (empty list)</span>';return;}
+    var html='<div style="display:flex;align-items:center;flex-wrap:wrap;gap:2px"><span class="mono" style="font-size:11px;color:var(--muted);margin-right:4px">head→</span>';
+    list.forEach(function(v,i){
+      html+='<div class="node'+(enter===i?" ":"")+'"'+(enter===i?' style="animation:pop .28s"':"")+'><div class="d">'+v+'</div><div class="n">next</div></div>';
+      html+='<span class="arrow">→</span>';
+    });
+    html+='<span class="nullcap">NULL</span></div>';
+    s.innerHTML=html;
+  }
+  app.onclick=function(){list.push(counter++);draw(list.length-1);m.className="vmsg";m.textContent="Appended — walked to the tail, linked a new node.";};
+  pre.onclick=function(){list.unshift(counter++);draw(0);m.className="vmsg";m.textContent="Prepended — new node becomes the head.";};
+  delh.onclick=function(){if(!list.length){m.className="vmsg err";m.textContent="List is empty.";return;}var v=list.shift();draw();m.className="vmsg";m.textContent="Deleted head "+v+" — head now points to the next node.";};
+  clr.onclick=function(){list=[];counter=40;draw();m.className="vmsg";m.textContent="";};
+  draw();
+};
+
+/* -- date -- */
+WIDGETS.date=function(el){
+  var wrap=document.createElement("div");wrap.style.display="flex";wrap.style.flexDirection="column";wrap.style.gap="12px";wrap.style.width="100%";
+  el.appendChild(wrap);var m=msg(el);
+  function iso(d){return d.toISOString().slice(0,10);}
+  var today=new Date();
+  wrap.innerHTML=
+    '<div class="subpanel"><h6>add / subtract days</h6><div class="controls" style="margin:0">'+
+      '<input type="date" class="field" id="d1" style="width:150px" value="'+iso(today)+'">'+
+      '<input type="number" class="field" id="dn" value="10" style="width:80px">'+
+      '<button class="btn sec" id="addD">+ days</button><button class="btn sec" id="subD">− days</button>'+
+      '<span class="stat" id="dOut">—</span></div></div>'+
+    '<div class="subpanel"><h6>compare two dates</h6><div class="controls" style="margin:0">'+
+      '<input type="date" class="field" id="c1" style="width:150px" value="2026-08-15">'+
+      '<input type="date" class="field" id="c2" style="width:150px" value="2026-09-20">'+
+      '<button class="btn" id="cmp">Compare</button><span class="stat" id="cOut">—</span></div></div>'+
+    '<div class="subpanel"><h6>leap year check</h6><div class="controls" style="margin:0">'+
+      '<input type="number" class="field" id="yr" value="2024" style="width:90px">'+
+      '<button class="btn sec" id="leap">Check</button><span class="stat" id="lOut">—</span></div></div>';
+  function get(id){return wrap.querySelector("#"+id);}
+  function shift(sign){var pp=(get("d1").value||"").split("-");if(pp.length!==3){m.className="vmsg err";m.textContent="Pick a valid date.";return;}
+    var d=new Date(Date.UTC(+pp[0],+pp[1]-1,+pp[2]));var n=parseInt(get("dn").value,10)||0;d.setUTCDate(d.getUTCDate()+sign*n);
+    get("dOut").innerHTML="→ <b>"+iso(d)+"</b>";m.className="vmsg";m.textContent="";}
+  get("addD").onclick=function(){shift(1);};get("subD").onclick=function(){shift(-1);};
+  get("cmp").onclick=function(){var a=new Date(get("c1").value),b=new Date(get("c2").value);
+    var r=a<b?"Date 1 is earlier":a>b?"Date 2 is earlier":"Both dates are equal";get("cOut").innerHTML="<b>"+r+"</b>";};
+  get("leap").onclick=function(){var y=parseInt(get("yr").value,10);var leap=(y%4===0&&y%100!==0)||y%400===0;
+    get("lOut").innerHTML="<b>"+y+(leap?" is a leap year":" is not a leap year")+"</b>";};
+};
+
+/* -- sparse converter -- */
+WIDGETS.sparse=function(el){
+  var R=4,C=5,mat=[[0,0,3,0,4],[0,0,5,7,0],[0,0,0,0,0],[0,2,6,0,0]];
+  var s=stage(el);s.style.flexDirection="column";s.style.alignItems="flex-start";s.style.gap="12px";
+  var c=controls(el),m=msg(el);
+  var conv=mkbtn("Convert"),ex=mkbtn("Load example","sec"),zero=mkbtn("Clear grid","sec");
+  [conv,ex,zero].forEach(function(x){c.appendChild(x);});
+  var out=document.createElement("div");out.style.width="100%";el.appendChild(out);
+  function drawGrid(){
+    var g='<div class="mgrid" style="grid-template-columns:repeat('+C+',42px)">';
+    for(var i=0;i<R;i++)for(var j=0;j<C;j++){g+='<input class="mc'+(mat[i][j]!==0?" nz":"")+'" data-r="'+i+'" data-c="'+j+'" value="'+mat[i][j]+'">';}
+    g+="</div>";
+    s.innerHTML='<div class="mono" style="font-size:10px;color:var(--muted)">edit any cell — non-zeros glow</div>'+g;
+    Array.prototype.forEach.call(s.querySelectorAll("input.mc"),function(inp){
+      inp.oninput=function(){var r=+inp.getAttribute("data-r"),cc=+inp.getAttribute("data-c");var v=parseInt(inp.value,10);mat[r][cc]=isNaN(v)?0:v;inp.classList.toggle("nz",mat[r][cc]!==0);};
+    });
+  }
+  function convert(){
+    var trip=[];for(var i=0;i<R;i++)for(var j=0;j<C;j++)if(mat[i][j]!==0)trip.push([i,j,mat[i][j]]);
+    if(!trip.length){out.innerHTML="";m.className="vmsg err";m.textContent="All zeros — add a non-zero value to see the representations.";return;}
+    m.className="vmsg good";m.textContent=trip.length+" non-zero values → both representations built.";
+    var tri='<div class="subpanel"><h6>(1) triplet — row / column / value</h6><table class="tbl" style="margin:0">'+
+      '<tr><th>Row</th>'+trip.map(function(t){return "<td>"+t[0]+"</td>";}).join("")+"</tr>"+
+      '<tr><th>Column</th>'+trip.map(function(t){return "<td>"+t[1]+"</td>";}).join("")+"</tr>"+
+      '<tr><th>Value</th>'+trip.map(function(t){return "<td>"+t[2]+"</td>";}).join("")+"</tr></table></div>";
+    var ll='<div class="subpanel" style="margin-top:12px"><h6>(2) linked list — node(row, col, value, next)</h6>'+
+      '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:2px;overflow-x:auto"><span class="mono" style="font-size:11px;color:var(--muted);margin-right:4px">head→</span>'+
+      trip.map(function(t){return '<div class="node"><div class="d" style="font-size:12px">'+t[0]+","+t[1]+","+t[2]+'</div><div class="n">next</div></div><span class="arrow">→</span>';}).join("")+
+      '<span class="nullcap">NULL</span></div></div>';
+    out.innerHTML=tri+ll;
+  }
+  conv.onclick=convert;
+  ex.onclick=function(){mat=[[0,0,3,0,4],[0,0,5,7,0],[0,0,0,0,0],[0,2,6,0,0]];drawGrid();convert();};
+  zero.onclick=function(){mat=[];for(var i=0;i<R;i++){mat.push([]);for(var j=0;j<C;j++)mat[i].push(0);}drawGrid();out.innerHTML="";m.className="vmsg";m.textContent="";};
+  drawGrid();convert();
+};
+
+/* -- spiral -- */
+WIDGETS.spiral=function(el){
+  var n=4,mat=[],running=false,timer=null;
+  function build(){mat=[];var k=1;for(var i=0;i<n;i++){mat.push([]);for(var j=0;j<n;j++)mat[i].push(k++);}}
+  build();
+  var s=stage(el);s.style.flexDirection="column";s.style.alignItems="flex-start";s.style.gap="12px";
+  var c=controls(el),m=msg(el);
+  var play=mkbtn("▶ Animate"),reset=mkbtn("Reset","sec"),tog=mkbtn("3×3 / 4×4","sec");
+  [play,reset,tog].forEach(function(x){c.appendChild(x);});
+  var outWrap=document.createElement("div");outWrap.style.width="100%";el.appendChild(outWrap);
+  function order(){var r=[],top=0,bot=n-1,left=0,right=n-1;
+    while(top<=bot&&left<=right){
+      for(var j=left;j<=right;j++)r.push([top,j]);top++;
+      for(var i=top;i<=bot;i++)r.push([i,right]);right--;
+      if(top<=bot){for(var j2=right;j2>=left;j2--)r.push([bot,j2]);bot--;}
+      if(left<=right){for(var i2=bot;i2>=top;i2--)r.push([i2,left]);left++;}
+    }return r;}
+  function draw(seen,cur){
+    var g='<div class="mgrid" style="grid-template-columns:repeat('+n+',42px)">';
+    var seenSet={};(seen||[]).forEach(function(p){seenSet[p[0]+"-"+p[1]]=1;});
+    for(var i=0;i<n;i++)for(var j=0;j<n;j++){
+      var key=i+"-"+j,cls="mc";if(cur&&cur[0]===i&&cur[1]===j)cls+=" cur";else if(seenSet[key])cls+=" seen";
+      g+='<div class="'+cls+'">'+mat[i][j]+"</div>";}
+    g+="</div>";s.innerHTML=g;
+    outWrap.innerHTML='<div class="subpanel"><h6>output order</h6><div class="mono" style="font-size:13px;word-spacing:2px">'+
+      ((seen||[]).map(function(p){return mat[p[0]][p[1]];}).join(", ")||"—")+"</div></div>";
+  }
+  function stop(){running=false;clearTimeout(timer);play.textContent="▶ Animate";}
+  play.onclick=function(){if(running){stop();return;}running=true;play.textContent="⏸ Pause";
+    var seq=order(),seen=[],i=0;m.className="vmsg";
+    (function step(){if(!running)return;if(i>=seq.length){stop();m.className="vmsg good";m.textContent="Spiral complete — "+seq.length+" cells, O(m×n).";draw(seen);return;}
+      var cur=seq[i];draw(seen.slice(),cur);seen.push(cur);m.textContent="Visiting r"+cur[0]+" c"+cur[1]+" = "+mat[cur[0]][cur[1]];i++;timer=setTimeout(step,300);})();};
+  reset.onclick=function(){stop();draw();m.className="vmsg";m.textContent="";};
+  tog.onclick=function(){stop();n=n===4?3:4;build();draw();m.className="vmsg";m.textContent="Switched to "+n+"×"+n+".";};
+  draw();
+};
+
+/* ================= DRAWER ================= */
+var side=document.getElementById("side"),scrim=document.getElementById("scrim");
+function openDrawer(){side.classList.add("open");scrim.classList.add("show");}
+function closeDrawer(){side.classList.remove("open");scrim.classList.remove("show");}
+document.getElementById("hamb").onclick=openDrawer;
+scrim.onclick=closeDrawer;
+
+/* ================= RESET ================= */
+document.getElementById("reset").onclick=function(){
+  if(!confirm("Clear all saved progress on this device?"))return;
+  state={completed:{},current:LESSONS[0].id,theme:state.theme,quiz:{}};
+  saveState();buildNav();renderLesson();refreshProgress();toast("Progress cleared");
+};
+
+/* ================= KEYBOARD ================= */
+document.addEventListener("keydown",function(e){
+  if(e.target&&/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;
+  var i=idx();
+  if(e.key==="ArrowRight"&&i<TOTAL-1)go(LESSONS[i+1].id);
+  if(e.key==="ArrowLeft"&&i>0)go(LESSONS[i-1].id);
+});
+
+/* ================= INIT ================= */
+applyTheme();
+buildNav();
+renderLesson();
+refreshProgress();
+if(!storageOK)setTimeout(function(){toast("Heads up: this browser is blocking storage, so progress won't be saved between visits.");},600);
+</script>
+</body>
+</html>
